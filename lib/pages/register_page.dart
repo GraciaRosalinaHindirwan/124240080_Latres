@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:latres/components/custom_buttom.dart';
 import 'package:latres/components/custom_text_field.dart';
+import 'package:latres/components/favorite_snackbar.dart';
 import 'package:latres/pages/login_page.dart';
+import 'package:latres/services/auth_service.dart';
 import 'package:latres/utils/app_colors.dart';
 import 'package:latres/utils/app_text_styles.dart';
 
@@ -25,6 +27,28 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  Future<void> handleRegister() async {
+    final result = await AuthService.register(
+      username: usernameController.text, 
+      password: passwordController.text, 
+      confirmPassword: confirmPasswordController.text,
+    ); 
+    
+    //jika registrasi gagal 
+    if(result == null){
+      FavoriteSnackbar.show(context, message: result.toString()); 
+      return; 
+    } 
+
+    FavoriteSnackbar.show(context, message: "Account created success"); 
+    Navigator.push(
+      context, 
+      MaterialPageRoute(builder: ((context) => LoginPage()), 
+      ),
+    );
+    
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
               Container(
                 alignment: Alignment.center,
                 child: Image.asset(
-                  'assets/img/login.png',
+                  'assets/img/register.png',
                   width: double.infinity,
                   height: 354,
                   fit: BoxFit.contain,
@@ -57,11 +81,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
         
-              Text("Your Portal Is Waiting!",
+              Text("Get Your Own Portal!",
                 style: AppTextStyles.heading
               ),
         
-              Text("Ready for another interdimensional adventure?", 
+              Text("Every dimension has a story. Start exploring yours!", 
                 style: AppTextStyles.body,
               ),
 
@@ -80,13 +104,23 @@ class _RegisterPageState extends State<RegisterPage> {
                 label: 'Password',
                 hintText: 'Enter your password', 
                 controller: passwordController,
+                obscureText: true,
+              ),
+        
+              const SizedBox(height: 8,), 
+        
+              CustomTextField(
+                label: 'Confirm Password',
+                hintText: 'Enter your confirm password', 
+                controller: confirmPasswordController,
                 obscureText: false,
               ),
 
               const SizedBox(height: 24,),
 
               CustomButton(
-                text: "Enter the Portal", onPressed: (){}
+                text: "Create My Portal", 
+                onPressed: handleRegister, 
               ),
 
               const SizedBox(height: 8,),
@@ -95,7 +129,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Dont Have an account? ',
+                    'Have an account? ',
                     style: AppTextStyles.body.copyWith(
                       fontSize: 14,
                     ),
@@ -103,15 +137,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterPage(),
-                      ),
-                    );
-                    },
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterPage(),
+                          ),
+                        );
+                      },
                     child: Text(
-                      'Sign up',
+                      'Sign in',
                       style: AppTextStyles.body.copyWith(
                         color: AppColors.primary,
                         fontSize: 14,

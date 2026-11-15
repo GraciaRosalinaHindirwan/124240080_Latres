@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latres/components/custom_buttom.dart';
 import 'package:latres/components/custom_text_field.dart';
+import 'package:latres/pages/register_page.dart';
 import 'package:latres/utils/app_colors.dart';
 import 'package:latres/utils/app_text_styles.dart';
 
@@ -14,13 +15,11 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final usernameController = TextEditingController(); 
   final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
 
   @override
   void dispose(){
     usernameController.dispose();
     passwordController.dispose();
-    confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -39,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
               Container(
                 alignment: Alignment.center,
                 child: Image.asset(
-                  'assets/img/register.png',
+                  'assets/img/login.png',
                   width: double.infinity,
                   height: 354,
                   fit: BoxFit.contain,
@@ -56,11 +55,11 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
         
-              Text("Get Your Own Portal!",
+              Text("Your Portal Is Waiting!",
                 style: AppTextStyles.heading
               ),
         
-              Text("Every dimension has a story. Start exploring yours!", 
+              Text("Ready for another interdimensional adventure?", 
                 style: AppTextStyles.body,
               ),
 
@@ -79,22 +78,13 @@ class _LoginPageState extends State<LoginPage> {
                 label: 'Password',
                 hintText: 'Enter your password', 
                 controller: passwordController,
-                obscureText: false,
-              ),
-        
-              const SizedBox(height: 8,), 
-        
-              CustomTextField(
-                label: 'Confirm Password',
-                hintText: 'Enter your confirm password', 
-                controller: confirmPasswordController,
-                obscureText: false,
+                obscureText: true,
               ),
 
               const SizedBox(height: 24,),
 
               CustomButton(
-                text: "Create My Portal", onPressed: (){}
+                text: "Enter the Portal", onPressed: (){}
               ),
 
               const SizedBox(height: 8,),
@@ -103,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Have an account? ',
+                    'Dont Have an account? ',
                     style: AppTextStyles.body.copyWith(
                       fontSize: 14,
                     ),
@@ -111,10 +101,15 @@ class _LoginPageState extends State<LoginPage> {
 
                   GestureDetector(
                     onTap: () {
-                      // Navigasi ke LoginPage
+                      Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterPage(),
+                      ),
+                    );
                     },
                     child: Text(
-                      'Sign in',
+                      'Sign up',
                       style: AppTextStyles.body.copyWith(
                         color: AppColors.primary,
                         fontSize: 14,

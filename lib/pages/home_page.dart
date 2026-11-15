@@ -103,7 +103,10 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Header(title: "Character Explore"),
+          Header(
+            title: "Character Explore", 
+            onLogout: (){},
+          ),
 
           const SizedBox(height: 20),
 

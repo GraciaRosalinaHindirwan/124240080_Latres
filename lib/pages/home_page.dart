@@ -1,8 +1,12 @@
 
 import 'package:flutter/material.dart';
+import 'package:latres/api/api_service.dart';
 import 'package:latres/components/filter_bottom_sheet.dart';
 import 'package:latres/components/favorite_snackbar.dart';
+import 'package:latres/models/character_model.dart';
 import 'package:latres/pages/episode_page.dart';
+import 'package:latres/pages/login_page.dart';
+import 'package:latres/services/auth_service.dart';
 import '../pages/favorite_page.dart';
 import '../pages/detail_page.dart';
 import '../pages/episode_page.dart';
@@ -24,11 +28,72 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final searchController = TextEditingController();
   String? selectedStatus;
+  int currentIndex = 0;
+
   final Set<String> favorites = {};
+
+  List<CharacterModel> characters = []; 
+
+  bool isLoading = true; 
+  String? errorMessage; 
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCharacters();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> fetchCharacters() async {
+    try {
+      setState(() {
+        isLoading = true; 
+        errorMessage = null; 
+      });
+
+      final result = await ApiService.getCharacters(
+        status: selectedStatus, 
+      ); 
+      if(!mounted) return; 
+
+      setState(() {
+        characters = result; 
+        isLoading = false; 
+      });
+
+    } catch (e) {
+      if(!mounted) return; 
+
+      setState(() {
+        isLoading = false; 
+        errorMessage = "Failed to load characters"; 
+      });
+    }
+  }
+
+  Map<String, String> characterToMap(CharacterModel character) {
+    return {
+      'id': character.id.toString(),
+      'name': character.name,
+      'image': character.image,
+      'status': character.status,
+      'species': character.species,
+      'gender': character.gender,
+      'origin': character.origin,
+      'location': character.location,
+    };
+  }
+
   List<Map<String, String>> get favoriteCharacters {
-    return characters.where((character) {
-      return favorites.contains(character['name']);
-    }).toList();
+    return characters
+        .where((character) => favorites.contains(character.name))
+        .map(characterToMap)
+        .toList();
   }
 
   void removeFavorite(String name) {
@@ -56,46 +121,53 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  int currentIndex = 0;
+  Future<void> handleLogout() async {
+    await AuthService.logout(); 
 
-  final characters = [
-    {
-      'name': 'Rick Sanchez',
-      'image': 'https://rickandmortyapi.com/api/character/avatar/1.jpeg',
-      'status': 'Alive',
-      'species': 'Human',
-      'gender': 'Male',
-      'origin': 'Earth (C-137)',
-      'location': 'Earth',
-    },
-    {
-      'name': 'Morty Smith',
-      'image': 'https://rickandmortyapi.com/api/character/avatar/2.jpeg',
-      'status': 'Alive',
-      'species': 'Human',
-      'gender': 'Male',
-      'origin': 'Earth (C-137)',
-      'location': 'Earth',
-    },
-  ];
+    if(!mounted) return; 
 
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
+    Navigator.pushAndRemoveUntil(
+      context, 
+      MaterialPageRoute(
+        builder: ((context) => LoginPage()),
+      ),
+      (route) => false, 
+    ); 
   }
   
   Widget buildHomeContent() {
+    if(isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+        ),
+      );
+    }
+
+    if(errorMessage != null){
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(errorMessage!,
+            style: const TextStyle(color: Colors.white),
+            ), 
+
+            const SizedBox(height: 12,), 
+
+            ElevatedButton(
+              onPressed: fetchCharacters, child: Text("Try Again"))
+          ],
+        ),
+      );
+    }
+
     final filteredCharacters = characters.where((character) {
-      final matchesSearch = character['name']!
+      final matchesSearch = character.name
           .toLowerCase()
           .contains(searchController.text.toLowerCase());
 
-      final matchesStatus = selectedStatus == null ||
-          character['status']!.toLowerCase() ==
-              selectedStatus!.toLowerCase();
-
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     }).toList();
 
     return Padding(
@@ -105,7 +177,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           Header(
             title: "Character Explore", 
-            onLogout: (){},
+            onLogout: handleLogout,
           ),
 
           const SizedBox(height: 20),
@@ -127,6 +199,8 @@ class _HomePageState extends State<HomePage> {
                       setState(() {
                         selectedStatus = status;
                       });
+
+                      fetchCharacters();
                     },
                   );
                 },
@@ -143,12 +217,13 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 20),
               itemBuilder: (context, index) {
                 final character = filteredCharacters[index];
-                final name = character['name']!;
+                final characterMap = characterToMap(character); 
+                final name = character.name;
 
                 return CharacterCard(
-                  imageUrl: character['image']!,
+                  imageUrl: character.image,
                   name: name,
-                  status: character['status']!,
+                  status: character.status,
                   isFavorite: favorites.contains(name),
                   onFavoriteTap: () {
                     toggleFavorite(name);
@@ -157,7 +232,7 @@ class _HomePageState extends State<HomePage> {
                     Navigator.push(
                       context, 
                       MaterialPageRoute(
-                        builder: ((context) => DetailPage(character: character)
+                        builder: ((context) => DetailPage(character: characterMap)
                         ),
                       )
                     );

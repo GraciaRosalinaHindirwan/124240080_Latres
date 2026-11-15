@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:latres/components/custom_buttom.dart';
 import 'package:latres/components/custom_text_field.dart';
+import 'package:latres/components/favorite_snackbar.dart';
+import 'package:latres/pages/home_page.dart';
 import 'package:latres/pages/register_page.dart';
+import 'package:latres/services/auth_service.dart';
 import 'package:latres/utils/app_colors.dart';
 import 'package:latres/utils/app_text_styles.dart';
 
@@ -21,6 +24,28 @@ class _LoginPageState extends State<LoginPage> {
     usernameController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> handleLogin() async {
+    final isLogin = await AuthService.login(
+      username: usernameController.text, 
+      password: passwordController.text,
+    );
+
+    if(!mounted) return; 
+
+    if(!isLogin){
+      FavoriteSnackbar.show(context, message: "Wrong Username or Password!");
+      return;  
+    }
+
+    FavoriteSnackbar.show(context, message: "Login Successful!"); 
+
+    Navigator.pushReplacement(
+      context, 
+      MaterialPageRoute(builder: ((context) => HomePage())
+      ),
+    );
   }
 
   @override
@@ -84,7 +109,8 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 24,),
 
               CustomButton(
-                text: "Enter the Portal", onPressed: (){}
+                text: "Enter the Portal",
+                onPressed: handleLogin, 
               ),
 
               const SizedBox(height: 8,),

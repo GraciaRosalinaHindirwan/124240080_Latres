@@ -35,7 +35,7 @@ class _RegisterPageState extends State<RegisterPage> {
     ); 
     
     //jika registrasi gagal 
-    if(result == null){
+    if(result != null){
       FavoriteSnackbar.show(context, message: result.toString()); 
       return; 
     } 
@@ -113,7 +113,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 label: 'Confirm Password',
                 hintText: 'Enter your confirm password', 
                 controller: confirmPasswordController,
-                obscureText: false,
+                obscureText: true,
               ),
 
               const SizedBox(height: 24,),
@@ -140,7 +140,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const RegisterPage(),
+                            builder: (context) => const LoginPage(),
                           ),
                         );
                       },

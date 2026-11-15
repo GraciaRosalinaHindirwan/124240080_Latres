@@ -7,6 +7,7 @@ import 'package:latres/models/character_model.dart';
 import 'package:latres/pages/episode_page.dart';
 import 'package:latres/pages/login_page.dart';
 import 'package:latres/services/auth_service.dart';
+import 'package:latres/services/favorite_service.dart';
 import '../pages/favorite_page.dart';
 import '../pages/detail_page.dart';
 import '../pages/episode_page.dart';
@@ -30,7 +31,7 @@ class _HomePageState extends State<HomePage> {
   String? selectedStatus;
   int currentIndex = 0;
 
-  final Set<String> favorites = {};
+  Set<String> favorites = {};
 
   List<CharacterModel> characters = []; 
 
@@ -41,6 +42,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     fetchCharacters();
+    loadFavorites(); 
   }
 
   @override
@@ -91,35 +93,59 @@ class _HomePageState extends State<HomePage> {
 
   List<Map<String, String>> get favoriteCharacters {
     return characters
-        .where((character) => favorites.contains(character.name))
+        .where(
+          (character) => favorites.contains(
+            character.id.toString()
+          )
+        )
         .map(characterToMap)
         .toList();
   }
 
-  void removeFavorite(String name) {
+  Future<void> loadFavorites() async {
+    final result = await FavoriteService.getFavorites();
+
+    if (!mounted) return;
+
     setState(() {
-      favorites.remove(name);
+      favorites = result.toSet();
     });
   }
 
-  void toggleFavorite(String name) {
-  final isRemoving = favorites.contains(name);
+  Future<void> removeFavorite(String id) async {
+    setState(() {
+      favorites.remove(id);
+    });
 
-  setState(() {
-    if (isRemoving) {
-      favorites.remove(name);
-    } else {
-      favorites.add(name);
-    }
-  });
-
-  FavoriteSnackbar.show(
-      context,
-      message: isRemoving
-          ? '$name removed from favorites'
-          : '$name added to favorites',
-    );
+    await FavoriteService.removeFavorite(id); 
   }
+
+  Future<void> toggleFavorite(String id, String name) async {
+    final isRemoving = favorites.contains(id);
+
+    setState(() {
+      if (isRemoving) {
+        favorites.remove(id);
+      } else {
+        favorites.add(id);
+      }
+    });
+
+    if(isRemoving) {
+      await FavoriteService.removeFavorite(id); 
+    } else {
+      await FavoriteService.addFavorite(id); 
+    }
+
+    if(!mounted) return; 
+
+    FavoriteSnackbar.show(
+        context,
+        message: isRemoving
+            ? '$name removed from favorites'
+            : '$name added to favorites',
+      );
+    }
 
   Future<void> handleLogout() async {
     await AuthService.logout(); 
@@ -224,9 +250,12 @@ class _HomePageState extends State<HomePage> {
                   imageUrl: character.image,
                   name: name,
                   status: character.status,
-                  isFavorite: favorites.contains(name),
+                  isFavorite: favorites.contains(character.id.toString()),
                   onFavoriteTap: () {
-                    toggleFavorite(name);
+                    toggleFavorite(
+                      character.id.toString(), 
+                      character.name, 
+                    );
                   },
                   onTap: () {
                     Navigator.push(
@@ -234,9 +263,12 @@ class _HomePageState extends State<HomePage> {
                       MaterialPageRoute(
                         builder: (context) => DetailPage(
                         character: characterMap,
-                        isFavorite: favorites.contains(name),
+                        isFavorite: favorites.contains(character.id.toString()),
                         onFavoriteTap: () {
-                          toggleFavorite(name);
+                          toggleFavorite(
+                            character.id.toString(), 
+                            character.name, 
+                          );
                         },
                       ),
                       )

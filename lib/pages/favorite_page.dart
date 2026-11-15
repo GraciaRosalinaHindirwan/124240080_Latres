@@ -51,10 +51,11 @@ class FavoritePage extends StatelessWidget {
                         final character =
                             favoriteCharacters[index];
 
+                        final id = character['id']!; 
                         final name = character['name']!;
 
                         return Dismissible(
-                          key: ValueKey(name),
+                          key: ValueKey(id),
                           direction:
                               DismissDirection.endToStart,
 
@@ -76,7 +77,7 @@ class FavoritePage extends StatelessWidget {
                           ),
 
                           onDismissed: (direction) {
-                            onRemoveFavorite(name);
+                            onRemoveFavorite(id);
 
                             FavoriteSnackbar.show(
                               context,

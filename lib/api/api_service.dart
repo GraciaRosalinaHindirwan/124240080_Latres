@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latres/models/character_model.dart';
+import 'package:latres/models/episode_model.dart';
 
 class ApiService {
   static const String baseUrl = 'rickandmortyapi.com';
@@ -75,6 +76,28 @@ class ApiService {
           .toList();
     } else {
       throw Exception('Failed to load favorite characters');
+    }
+  }
+
+  static Future<List<EpisodeModel>> getEpisodes() async {
+    final uri = Uri.https(
+      baseUrl,
+      '/api/episode',
+    );
+
+    final response = await http.get(uri).timeout(
+      const Duration(seconds: 15),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List results = data['results'];
+
+      return results
+          .map((json) => EpisodeModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Failed to load episodes');
     }
   }
 }

@@ -1,35 +1,55 @@
 
 import 'package:flutter/material.dart';
+import 'package:latres/api/api_service.dart';
+import 'package:latres/models/episode_model.dart';
 
 import '../components/header.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_text_styles.dart';
 
-class EpisodePage extends StatelessWidget {
+class EpisodePage extends StatefulWidget {
   const EpisodePage({super.key});
 
-  final List<Map<String, String>> episodes = const [
-    {
-      'episode': 'E01',
-      'name': 'PILOT',
-      'date': 'December 2, 2013',
-    },
-    {
-      'episode': 'E02',
-      'name': 'LAWNMOWER DOG',
-      'date': 'December 9, 2013',
-    },
-    {
-      'episode': 'E03',
-      'name': 'ANATOMY PARK',
-      'date': 'December 16, 2013',
-    },
-    {
-      'episode': 'E04',
-      'name': 'M. NIGHT SHAYM-ALIENS!',
-      'date': 'January 13, 2014',
-    },
-  ];
+  @override
+  State<EpisodePage> createState() => _EpisodePageState();
+}
+
+class _EpisodePageState extends State<EpisodePage> {
+  List<EpisodeModel> episodes = [];
+  bool isLoading = true;
+
+  String? errorMessage;
+
+  Future<void> fetchEpisodes() async {
+    try {
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      final result = await ApiService.getEpisodes();
+
+      if (!mounted) return;
+
+      setState(() {
+        episodes = result;
+        isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Failed to load episodes';
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchEpisodes();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,17 +69,40 @@ class EpisodePage extends StatelessWidget {
 
             // Episode List
             Expanded(
-              child: ListView.separated(
-                itemCount: episodes.length,
-                separatorBuilder: (context, index) {
-                  return const SizedBox(height: 20);
-                },
-                itemBuilder: (context, index) {
-                  final episode = episodes[index];
+              child: isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : errorMessage != null
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                errorMessage!,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: fetchEpisodes,
+                                child: const Text('Try Again'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: episodes.length,
+                          separatorBuilder: (context, index) {
+                            return const SizedBox(height: 20);
+                          },
+                          itemBuilder: (context, index) {
+                            final episode = episodes[index];
 
-                  return _buildEpisodeCard(episode);
-                },
-              ),
+                            return _buildEpisodeCard(episode);
+                          },
+                        ),
             ),
           ],
         ),
@@ -67,7 +110,7 @@ class EpisodePage extends StatelessWidget {
     );
   }
 
-  Widget _buildEpisodeCard(Map<String, String> episode) {
+  Widget _buildEpisodeCard(EpisodeModel episode) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -103,7 +146,7 @@ class EpisodePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  episode['episode']!,
+                  episode.episode,
                   style: AppTextStyles.body.copyWith(
                     color: AppColors.primary,
                     fontSize: 10,
@@ -112,7 +155,7 @@ class EpisodePage extends StatelessWidget {
                 ),
 
                 Text(
-                  episode['name']!,
+                  episode.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.heading.copyWith(
@@ -134,7 +177,7 @@ class EpisodePage extends StatelessWidget {
                     const SizedBox(width: 5),
 
                     Text(
-                      episode['date']!,
+                      episode.airDate,
                       style: AppTextStyles.body.copyWith(
                         color: Colors.grey,
                         fontSize: 10,

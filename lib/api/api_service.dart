@@ -27,4 +27,23 @@ class ApiService {
       throw Exception('Failed to load characters');
     }
   }
+
+  static Future<CharacterModel> getCharacterById(int id) async {
+    final uri = Uri.https(
+      baseUrl,
+      '/api/character/$id',
+    );
+
+    final response = await http.get(uri).timeout(
+      const Duration(seconds: 15),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      return CharacterModel.fromJson(data);
+    } else {
+      throw Exception('Failed to load character detail');
+    }
+  }
 }

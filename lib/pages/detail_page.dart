@@ -1,11 +1,13 @@
 
 import 'package:flutter/material.dart';
+import '../api/api_service.dart';
+import '../models/character_model.dart';
 
 import '../utils/app_colors.dart';
 import '../utils/app_text_styles.dart';
 import '../components/status_badge.dart';
 
-class DetailPage extends StatelessWidget {
+class DetailPage extends StatefulWidget {
   final Map<String, String> character;
 
   const DetailPage({
@@ -14,7 +16,65 @@ class DetailPage extends StatelessWidget {
   });
 
   @override
+  State<DetailPage> createState() => _DetailPageState();
+}
+
+class _DetailPageState extends State<DetailPage> {
+  CharacterModel? characterDetail;
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCharacterDetail();
+  }
+
+  Future<void> fetchCharacterDetail() async {
+    try {
+      final id = int.parse(widget.character['id']!);
+
+      final result = await ApiService.getCharacterById(id);
+
+      if (!mounted) return;
+
+      setState(() {
+        characterDetail = result;
+        isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = 'Failed to load character detail';
+        isLoading = false;
+      });
+    }
+  }
+  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: AppColors.primary,
+          ),
+        ),
+      );
+    }
+
+    if (errorMessage != null || characterDetail == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Text(
+            errorMessage ?? 'Character not found',
+            style: AppTextStyles.body.copyWith(color: Colors.white),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.background,
 
@@ -56,7 +116,7 @@ class DetailPage extends StatelessWidget {
                   children: [
                     // Character Image
                     Image.network(
-                      character['image']!,
+                      characterDetail!.image,
                       width: double.infinity,
                       height: 240,
                       fit: BoxFit.cover,
@@ -78,7 +138,7 @@ class DetailPage extends StatelessWidget {
                                       CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      character['name']!.toUpperCase(),
+                                      characterDetail!.name.toUpperCase(),
                                       style: AppTextStyles.heading.copyWith(
                                         color: AppColors.primary,
                                         fontSize: 20,
@@ -88,7 +148,7 @@ class DetailPage extends StatelessWidget {
                                     const SizedBox(height: 4),
 
                                     StatusBadge(
-                                      status: character['status']!,
+                                      status: characterDetail!.status,
                                     ),
                                   ],
                                 ),
@@ -131,13 +191,13 @@ class DetailPage extends StatelessWidget {
                               Expanded(
                                 child: _buildInformation(
                                   'SPECIES',
-                                  character['species']!,
+                                  characterDetail!.species,
                                 ),
                               ),
                               Expanded(
                                 child: _buildInformation(
                                   'GENDER',
-                                  character['gender']!,
+                                  characterDetail!.gender,
                                 ),
                               ),
                             ],
@@ -150,13 +210,13 @@ class DetailPage extends StatelessWidget {
                               Expanded(
                                 child: _buildInformation(
                                   'ORIGIN',
-                                  character['origin']!,
+                                  characterDetail!.origin,
                                 ),
                               ),
                               Expanded(
                                 child: _buildInformation(
                                   'LOCATION',
-                                  character['location']!,
+                                  characterDetail!.location,
                                 ),
                               ),
                             ],

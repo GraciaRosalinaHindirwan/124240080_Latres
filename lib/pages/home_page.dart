@@ -34,21 +34,50 @@ class _HomePageState extends State<HomePage> {
   Set<String> favorites = {};
 
   List<CharacterModel> characters = []; 
+  List<CharacterModel> favoriteCharacters = [];
+  bool isFavoriteLoading = true;
 
   bool isLoading = true; 
   String? errorMessage; 
+
 
   @override
   void initState() {
     super.initState();
     fetchCharacters();
-    loadFavorites(); 
+    loadFavorites();
+    fetchFavoriteCharacters(); 
   }
 
   @override
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> fetchFavoriteCharacters() async {
+    try {
+      setState(() {
+        isFavoriteLoading = true;
+      });
+
+      final favoriteIds = await FavoriteService.getFavorites();
+
+      final result = await ApiService.getCharactersByIds(favoriteIds);
+
+      if (!mounted) return;
+
+      setState(() {
+        favoriteCharacters = result;
+        isFavoriteLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isFavoriteLoading = false;
+      });
+    }
   }
 
   Future<void> fetchCharacters() async {
@@ -91,17 +120,6 @@ class _HomePageState extends State<HomePage> {
     };
   }
 
-  List<Map<String, String>> get favoriteCharacters {
-    return characters
-        .where(
-          (character) => favorites.contains(
-            character.id.toString()
-          )
-        )
-        .map(characterToMap)
-        .toList();
-  }
-
   Future<void> loadFavorites() async {
     final result = await FavoriteService.getFavorites();
 
@@ -118,6 +136,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     await FavoriteService.removeFavorite(id); 
+    await fetchFavoriteCharacters(); 
   }
 
   Future<void> toggleFavorite(String id, String name) async {
@@ -131,21 +150,23 @@ class _HomePageState extends State<HomePage> {
       }
     });
 
-    if(isRemoving) {
-      await FavoriteService.removeFavorite(id); 
+    if (isRemoving) {
+      await FavoriteService.removeFavorite(id);
     } else {
-      await FavoriteService.addFavorite(id); 
+      await FavoriteService.addFavorite(id);
     }
 
-    if(!mounted) return; 
+    await fetchFavoriteCharacters();
+
+    if (!mounted) return;
 
     FavoriteSnackbar.show(
-        context,
-        message: isRemoving
-            ? '$name removed from favorites'
-            : '$name added to favorites',
-      );
-    }
+      context,
+      message: isRemoving
+          ? '$name removed from favorites'
+          : '$name added to favorites',
+    );
+  }
 
   Future<void> handleLogout() async {
     await AuthService.logout(); 
@@ -292,6 +313,7 @@ class _HomePageState extends State<HomePage> {
 
       FavoritePage(
         favoriteCharacters: favoriteCharacters,
+        isLoading: isFavoriteLoading,
         onRemoveFavorite: removeFavorite,
         onExplore: () {
           setState(() {

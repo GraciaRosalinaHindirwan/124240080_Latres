@@ -46,4 +46,35 @@ class ApiService {
       throw Exception('Failed to load character detail');
     }
   }
+
+  static Future<List<CharacterModel>> getCharactersByIds(
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return [];
+
+    final uri = Uri.https(
+      baseUrl,
+      '/api/character/${ids.join(',')}',
+    );
+
+    final response = await http.get(uri).timeout(
+      const Duration(seconds: 15),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (ids.length == 1) {
+        return [CharacterModel.fromJson(data)];
+      }
+
+      final List results = data;
+
+      return results
+          .map((json) => CharacterModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Failed to load favorite characters');
+    }
+  }
 }

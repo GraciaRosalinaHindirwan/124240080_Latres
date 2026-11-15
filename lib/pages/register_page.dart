@@ -1,0 +1,130 @@
+import 'package:flutter/material.dart';
+import 'package:latres/components/custom_buttom.dart';
+import 'package:latres/components/custom_text_field.dart';
+import 'package:latres/pages/login_page.dart';
+import 'package:latres/utils/app_colors.dart';
+import 'package:latres/utils/app_text_styles.dart';
+
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final usernameController = TextEditingController(); 
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose(){
+    usernameController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Register Image
+              Container(
+                alignment: Alignment.center,
+                child: Image.asset(
+                  'assets/img/login.png',
+                  width: double.infinity,
+                  height: 354,
+                  fit: BoxFit.contain,
+                ),
+              ),
+          
+              Container(
+                alignment: Alignment.center,
+                child: Image.asset(
+                  'assets/img/logo.png',
+                  width: 354,
+                  height: 100,
+                  fit: BoxFit.contain,
+                ),
+              ),
+        
+              Text("Your Portal Is Waiting!",
+                style: AppTextStyles.heading
+              ),
+        
+              Text("Ready for another interdimensional adventure?", 
+                style: AppTextStyles.body,
+              ),
+
+              const SizedBox(height: 24,), 
+        
+              CustomTextField(
+                label: 'Username',
+                hintText: 'Enter your username', 
+                controller: usernameController,
+                obscureText: false,
+              ),
+        
+              const SizedBox(height: 8,), 
+        
+              CustomTextField(
+                label: 'Password',
+                hintText: 'Enter your password', 
+                controller: passwordController,
+                obscureText: false,
+              ),
+
+              const SizedBox(height: 24,),
+
+              CustomButton(
+                text: "Enter the Portal", onPressed: (){}
+              ),
+
+              const SizedBox(height: 8,),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Dont Have an account? ',
+                    style: AppTextStyles.body.copyWith(
+                      fontSize: 14,
+                    ),
+                  ),
+
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterPage(),
+                      ),
+                    );
+                    },
+                    child: Text(
+                      'Sign up',
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.primary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

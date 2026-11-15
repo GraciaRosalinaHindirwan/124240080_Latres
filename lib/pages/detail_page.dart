@@ -9,10 +9,14 @@ import '../components/status_badge.dart';
 
 class DetailPage extends StatefulWidget {
   final Map<String, String> character;
+  final bool isFavorite;
+  final VoidCallback onFavoriteTap;
 
   const DetailPage({
     super.key,
     required this.character,
+    required this.isFavorite,
+    required this.onFavoriteTap,
   });
 
   @override
@@ -23,10 +27,12 @@ class _DetailPageState extends State<DetailPage> {
   CharacterModel? characterDetail;
   bool isLoading = true;
   String? errorMessage;
+  late bool isFavorite;
 
   @override
   void initState() {
     super.initState();
+    isFavorite = widget.isFavorite;
     fetchCharacterDetail();
   }
 
@@ -155,9 +161,17 @@ class _DetailPageState extends State<DetailPage> {
                               ),
 
                               IconButton(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.favorite_border,
+                                onPressed: () {
+                                  setState(() {
+                                    isFavorite = !isFavorite;
+                                  });
+
+                                  widget.onFavoriteTap();
+                                },
+                                icon: Icon(
+                                  isFavorite
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
                                   color: AppColors.primary,
                                 ),
                               ),

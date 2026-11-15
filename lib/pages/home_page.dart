@@ -232,8 +232,13 @@ class _HomePageState extends State<HomePage> {
                     Navigator.push(
                       context, 
                       MaterialPageRoute(
-                        builder: ((context) => DetailPage(character: characterMap)
-                        ),
+                        builder: (context) => DetailPage(
+                        character: characterMap,
+                        isFavorite: favorites.contains(name),
+                        onFavoriteTap: () {
+                          toggleFavorite(name);
+                        },
+                      ),
                       )
                     );
                   },
